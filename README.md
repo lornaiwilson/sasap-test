@@ -5,3 +5,4 @@ Reproducible research training practice for learning GitHub
 - deer
 - muskox
 - moose
+- wolves
