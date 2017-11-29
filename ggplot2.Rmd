@@ -1,0 +1,224 @@
+---
+title: "ggplot2 exercies"
+author: "SASAP - LW"
+date: "November 29, 2017"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r}
+suppressPackageStartupMessages({
+  library(ggplot2)
+  library(tidyr)
+  library(dplyr)
+})
+```
+
+get data: downloading directly from site only works on macs
+```{r}
+permits <- read.csv("https://knb.ecoinformatics.org/knb/d1/mn/v2/object/urn%3Auuid%3Aa3c58bd6-481e-4c64-aa93-795df10a4664",
+                    stringsAsFactors = FALSE)
+```
+
+```{r}
+permits = read.table("clipboard", header=T, sep="\t")
+```
+
+```{r}
+names(permits)
+summary(permits)
+```
+
+ggplot, dataset, aesthetics funciton (), call a function for the geometry of the plot
+start with aesthetics, then supply goemetry instead of making data available to geometry, otherwise 
+
+
+```{r}
+ggplot(permits, aes(Value, StdDev)) + geom_point()
+
+#not as good as:
+ggplot(permits) + geom_point(data = permits, aes(Value, StdDev))
+```
+
+```{r}
+ggplot(permits, aes(Value, StdDev, color = Gear)) + 
+  geom_point()
+```
+aesthetics are not quoted, they are being mapped.
+setting is being done
+
+```{r}
+ggplot(permits, aes(Value, StdDev, color = "blue")) +
+  geom_point()
+
+ggplot(permits, aes(Value, StdDev)) +
+  geom_point( color = "blue")
+
+```
+
+
+```{r}
+ggplot(permits, aes(Value, StdDev, color = Gear, size = Range)) + 
+  geom_point()
+
+```
+
+```{r}
+ggplot(permits, aes(Value)) + 
+  geom_histogram()
+
+ggplot(permits, aes(Value)) + 
+  geom_histogram(binwidth = 10000)
+```
+
+```{r}
+ggplot(permits, aes(Gear, Value)) + 
+  geom_boxplot()
+```
+
+
+```{r}
+#find out how data is named
+summary(permits$Region)
+unique(permits$Region)
+
+permits_CI = permits %>%
+  filter(Region ==  "Cook Inlet")
+
+ggplot(permits_CI, aes(Gear, Value)) +
+  geom_violin() + 
+  geom_point(pch = 1, position = "jitter")
+
+#but overplotting, so make empty circles, jitter
+```
+
+aes (x, y) in plot
+
+```{r}
+ggplot(permits, aes(Value, StdDev)) +
+  geom_point() +
+  geom_smooth(method = lm)
+```
+
+
+
+```{r}
+se_seine = permits %>%
+  filter(Gear == "Purse Seine", 
+         Region == "Southeast")
+summary(se_seine)
+```
+
+plus signs pass on data, max is not a ggplot function
+
+```{r}
+ggplot(se_seine, aes(Year, Value)) + 
+  geom_point() +
+  geom_line() + 
+  scale_y_continuous(limits = c(0, NA)) + 
+  scale_x_continuous(breaks = c(seq(1985, 2015, by = 5)))
+
+```
+
+
+```{r}
+ggplot(se_seine, aes(Year, Value)) + 
+  geom_point() +
+  geom_line() + 
+  coord_cartesian(xlim = c(2000, max(se_seine$Year)))
+```
+
+```{r}
+
+valueformat = function(val){
+  format(val, scientific = FALSE)
+  }
+
+ggplot(permits, aes(Value, StdDev, color = Gear)) + 
+  geom_point() + 
+  scale_x_continuous(labels = valueformat) + 
+  scale_color_manual(values = c("red", "orange","yellow","green", "blue", "purple", "violet"))
+
+ggplot(permits, aes(Value, StdDev, color = Gear)) + 
+  geom_point() + 
+  scale_x_continuous(labels = valueformat) + 
+  scale_color_brewer(palette = "Dark2")
+
+
+
+ggplot(permits, aes(Value, StdDev, color = Gear)) + 
+  geom_point() + 
+  scale_x_log10(labels = valueformat) + 
+  scale_color_brewer(palette = "Dark2") + 
+
+
+```
+
+
+
+plotting small multiples using facet
+```{r}
+ggplot(permits_CI, aes(Year, Value)) + 
+  geom_point() + 
+  geom_line() + 
+  facet_wrap(~Gear,ncol=1)
+
+ggplot(permits_CI, aes(Year, Value)) + 
+  geom_point() + 
+  geom_line() + 
+  facet_wrap(~Gear,dir = "v")
+```
+
+
+```{r}
+
+theme_set(theme_classic())
+
+#customize plot using theme ()
+my_theme = theme_classic(base_size = 12) +
+  theme(legend.position = "top") 
+
+nice_plot = ggplot(permits, aes(Value, StdDev, color = Gear))+
+  geom_point() +
+  my_theme
+  
+```
+
+Save plots using ggsave (others not likely to work)
+Default saves the last plot generated
+```{r}
+ggsave("my_plot.png")
+```
+
+```{r}
+ggsave("my_plot.png", width = 6, height = 6)
+  
+```
+
+saving images to a folder
+add a directory, decide where to save 
+```{r}
+ggsave("figures/my_plot.png", width = 6, height = 6)
+  
+```
+
+
+```{r}
+print(nice_plot)
+```
+
+Check out google search results for ggplot extensions, such as 
+- ggrepel (labels points so labels do not overlap)
+- ggExtra (marginal density plots)
+- gganimate (in rmarkdown)
+
+
+Bonus material on how to include different types of plots to plot a few on a single package: cowplot
+plot_grid(p1, p2, align = "hv" or "h" or "v", ncol = 1)
+where p1 and p2 are plots
+
+
+
+
+
