@@ -1,0 +1,224 @@
+---
+title: "data cleaning"
+date: "November 28, 2017"
+output: html_document
+---
+
+```{r}
+catch = read.table("clipboard", header=T, sep="\t")
+head(catch)
+```
+
+```{r}
+catch <- read.csv("https://knb.ecoinformatics.org/knb/d1/mn/v2/object/df35b.302.1",
+                  stringsAsFactors = FALSE)
+head(catch)
+```
+
+
+```{r}
+
+library(dplyr)
+library(tidyr)
+```
+
+```{r}
+catch = catch %>% 
+  select(-All, -notesRegCode)
+#select (catch, -All, -notesRegCode)
+```
+Can also select positive  #catch %>% (Region, Year, Chinook, ....)
+
+```{r}
+catch = catch%>%
+  gather(species, catch, -Region, -Year)
+```
+
+```{r}
+head(catch)
+```
+
+
+```{r}
+range(catch$catch)
+```
+
+
+```{r}
+summary(catch)
+```
+
+```{r}
+as.integer(catch$catch)
+```
+
+but we see NAs, so 
+```{r}
+catch_integers = as.integer(catch$catch)
+```
+
+```{r}
+which(is.na(catch_integers))
+catch[401,]
+```
+
+
+```{r}
+catch[401,"catch"] = 1
+catch[401,]
+as.integer(catch$catch)
+```
+No more "I"s
+
+```{r}
+summary(catch)
+```
+
+```{r}
+catch = catch %>% 
+  mutate(catch = as.integer(catch))
+```
+
+```{r}
+summary(catch)
+```
+Now catch is numeric
+
+Put catch in fish:
+```{r}
+catch = catch %>% 
+  mutate(catch = catch*1000)
+```
+
+```{r}
+summary(catch)
+```
+
+
+```{r}
+catch%>%
+  group_by(Region)%>%
+  summarize(mean_catch = mean(catch))
+```
+
+
+```{r}
+catch%>%
+  group_by(Region)%>%
+  summarize(n = n())
+```
+```{r}
+names(catch)
+```
+
+names()
+```{r}
+catch%>%
+  group_by(Region)%>%
+  summarize(n = n())
+```
+
+
+```{r}
+sse_catches = catch %>%
+  filter(Region == "SSE")
+
+sse_catches
+```
+
+
+
+these dplyr verbs are also in Oracle
+
+```{r}
+catch_largecatches = catch %>%
+  filter(catch > 1000000)
+
+catch_largecatches
+```
+
+
+```{r}
+catch_largecatches%>%
+  group_by(species)%>%
+  summarize(n = n())
+
+```
+
+
+```{r}
+large_sse_catch = catch %>%
+  filter(catch > 1000000) %>%
+  filter(Region == "SSE")
+
+summary(large_sse_catch)
+```
+
+
+```{r}
+large_sse_catch %>%
+  arrange(catch)
+```
+
+```{r}
+large_sse_catch %>%
+  arrange(desc(catch))
+```
+
+```{r}
+region_defs = read.table("clipboard", header=T, sep="\t")
+head(region_defs)
+```
+
+```{r}
+summary(region_defs)
+```
+
+
+
+
+```{r}
+names(region_defs); names(catch)
+```
+
+```{r}
+catch %>% 
+  group_by(Region) %>%
+  summarize(total_catch = sum(catch)) %>%
+  left_join(region_defs, by = c("Region", "code"))
+```
+
+
+
+
+```{r}
+dates_df <- data.frame(date = c("5/24/1930",
+                                "5/25/1930",
+                                "5/26/1930",
+                                "5/27/1930",
+                                "5/28/1930"),
+                       stringsAsFactors = FALSE)
+```
+
+
+
+
+```{r}
+dates_df = dates_df %>% 
+  separate(date, c("month", "day", "year"), "/")
+```
+
+
+
+```{r}
+dates_df %>% 
+  unite(date, month, day, year, sep = "/")
+```
+
+
+```{r}
+
+```
+
+
+
